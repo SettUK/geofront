@@ -59,6 +59,58 @@ Idea
    (about 30 seconds, or a minute) adds their public key to ``authorized_keys``
    of the requested server.
 
+GitHub/Docker Quick Setup
+-------------------------
+
+Server
+
+example ``geofront.cfg.py``
+
+.. code:: python
+
+   # GitHub Org
+   from geofront.backends.github import GitHubOrganization
+   
+   TEAM = GitHubOrganization(
+      client_id='id',
+      client_secret='secret',
+      org_login='org'
+   )
+   
+   # GitHub Key Store
+   from geofront.backends.github import GitHubKeyStore
+   KEY_STORE = GitHubKeyStore()
+   
+   # Master key store
+   from geofront.masterkey import FileSystemMasterKeyStore
+   MASTER_KEY_STORE = FileSystemMasterKeyStore('/config/master_key')
+   
+   # Redis Cache
+   from werkzeug.contrib.cache import RedisCache
+   TOKEN_STORE = RedisCache(host='localhost', db=0)
+   
+   # Servers
+   from geofront.remote import Remote
+   REMOTE_SET = {
+     'servername': Remote('user', 'host')
+   }
+
+1. Setup OAuth App in Github Org, with callback URL set to the IP or domain of the geofront server, add the client id and secret to the geofront config
+2. Set the ``REMOTE_SET`` in the config to the servers you want to connect to
+3. Set the redis host in config to point to a redis server
+4. Set the master key store config e.g. ``/config/master_key``
+5. ``docker run -d -p 80:8080 -v /path/to/config:/config --name geofront sett/geofront`` or choose some other port and reverse proxy nginx to it. Link redis if using a locally e.g. ``--link redis:redis``
+
+Client
+
+1. Install python3 with pip
+2. If you're on windows install pywin32: https://sourceforge.net/projects/pywin32/files/pywin32/Build%20220/
+3. ``pip install geofront-cli``
+4. ``geofront-cli start`` - enter URL of geofront server
+5. ``geofront-cli remotes`` - should create a list of servers
+6. ``geofront-cli colonize <remote>`` - you need access to the remote with your local key - this will add geofronts key to the remote server
+7. ``geofront-cli ssh <remote>`` - should now work (but not on windows)
+
 
 Prerequisites
 -------------
